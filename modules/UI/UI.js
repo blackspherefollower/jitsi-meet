@@ -311,6 +311,11 @@ UI.toggleFilmstrip = function() {
 };
 
 /**
+ * Toggles the visibility of the buttplug panel.
+ */
+UI.toggleButtplug = () => APP.store.dispatch(toggleButtplug());
+
+/**
  * Toggles the visibility of the chat panel.
  */
 UI.toggleChat = () => APP.store.dispatch(toggleChat());

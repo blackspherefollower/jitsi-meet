@@ -7,7 +7,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 
 import { i18next } from '../../../../react/features/base/i18n';
-import { ContactListPanel } from '../../../../react/features/buttplug';
+import { ButtplugPanel } from '../../../../react/features/buttplug';
 /* eslint-enable no-unused-vars */
 
 import UIUtil from '../../util/UIUtil';
@@ -40,7 +40,7 @@ const ButtplugView = {
     },
 
     /**
-     * Indicates if the contact list is currently visible.
+     * Indicates if the buttplug  is currently visible.
      *
      * @return {boolean) true if the contact list is currently visible.
      */

@@ -125,6 +125,10 @@ function initCommands() {
             sendAnalytics(createApiEvent('chat.toggled'));
             APP.UI.toggleChat();
         },
+        'toggle-buttplug': () => {
+            createApiEvent('buttplug.toggled');
+            APP.UI.toggleButtplug();
+        },
 
         /**
          * Callback to invoke when the "toggle-share-screen" command is received.
