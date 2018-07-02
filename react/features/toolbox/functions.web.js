@@ -22,6 +22,10 @@ export function getToolboxHeight() {
  * is enabled, false - otherwise.
  */
 export function isButtonEnabled(name: string) {
+    if (name === 'buttplug') {
+        return true;
+    }
+
     return interfaceConfig.TOOLBAR_BUTTONS.indexOf(name) !== -1;
 }
 

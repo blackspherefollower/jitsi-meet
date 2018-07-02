@@ -1,52 +1,45 @@
 /* global $, APP */
 
 /* eslint-disable no-unused-vars */
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 
 import { i18next } from '../../../../react/features/base/i18n';
-import { ButtplugPanel } from '../../../../react/features/buttplug';
-/* eslint-enable no-unused-vars */
-
+import { ButtplugView } from '../../../../react/features/buttplug';
 import UIUtil from '../../util/UIUtil';
 
-/**
- * BUTTPLUG!!!
- */
-const ButtplugView = {
-    /**
-     * Creates and appends buttplugs to the side panel.
-     *
-     * @returns {void}
-     */
+/* eslint-enable no-unused-vars */
+
+export default {
     init() {
-        const buttplugPanelContainer = document.createElement('div');
+        const buttplugViewContainer = document.createElement('div');
 
-        buttplugPanelContainer.id = 'buttplug_container';
-        buttplugPanelContainer.className = 'sideToolbarContainer__inner';
+        buttplugViewContainer.id = 'buttplug_container';
+        buttplugViewContainer.className = 'sideToolbarContainer__inner';
 
-        $('#sideToolbarContainer').append(buttplugPanelContainer);
+        $('#sideToolbarContainer').append(buttplugViewContainer);
+
+        const props = {
+        };
 
         ReactDOM.render(
             <Provider store = { APP.store }>
                 <I18nextProvider i18n = { i18next }>
-                    <ButtplugPanel />
+                    <ButtplugView { ...props } />
                 </I18nextProvider>
             </Provider>,
-            buttplugPanelContainer
+            buttplugViewContainer
         );
     },
 
     /**
-     * Indicates if the buttplug  is currently visible.
-     *
-     * @return {boolean) true if the contact list is currently visible.
+     * Check if settings menu is visible or not.
+     * @returns {boolean}
      */
     isVisible() {
-        return UIUtil.isVisible(document.getElementById('buttplug'));
+        return UIUtil.isVisible(document.getElementById('buttplug_container'));
     }
 };
-
-export default ButtplugView;

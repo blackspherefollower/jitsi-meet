@@ -22,7 +22,7 @@ import { AbstractApp } from './AbstractApp';
  *
  * @extends AbstractApp
  */
-export class App extends AbstractApp {
+class App extends AbstractApp {
     /**
      * Overrides the parent method to inject {@link AtlasKitThemeProvider} as
      * the top most component.
@@ -51,3 +51,14 @@ export class App extends AbstractApp {
         );
     }
 }
+
+let ExportedApp = App;
+
+// const { hot }  = require('react-hot-loader');
+const { hot, setConfig } = require('react-hot-loader');
+
+setConfig({ logLevel: 'debug' });
+ExportedApp = hot(module)(App);
+
+
+export { ExportedApp as App };

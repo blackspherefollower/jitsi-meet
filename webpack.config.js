@@ -2,7 +2,7 @@
 
 const process = require('process');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-var webpack = require('webpack');
+const webpack = require('webpack');
 
 /**
  * The URL of the Jitsi Meet deployment to be proxy to in the context of
@@ -35,6 +35,8 @@ const config = {
     devServer: {
         https: true,
         inline: true,
+        hot: true,
+        host: '0.0.0.0',
         proxy: {
             '/': {
                 bypass: devServerProxyBypass,
@@ -67,7 +69,8 @@ const config = {
                     require.resolve('@babel/plugin-proposal-export-default-from'),
                     require.resolve('@babel/plugin-proposal-export-namespace-from'),
                     require.resolve('@babel/plugin-proposal-nullish-coalescing-operator'),
-                    require.resolve('@babel/plugin-proposal-optional-chaining')
+                    require.resolve('@babel/plugin-proposal-optional-chaining'),
+                    'react-hot-loader/babel'
                 ],
                 presets: [
                     [
@@ -160,7 +163,8 @@ const config = {
         new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery'
-        })
+        }),
+        new webpack.HotModuleReplacementPlugin()
     ].filter(Boolean),
     resolve: {
         alias: {

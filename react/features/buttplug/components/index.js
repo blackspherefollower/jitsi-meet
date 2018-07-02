@@ -1,1 +1,2 @@
-export { default as ButtplugPanel } from './ButtplugPanel';
+export ButtplugConnection from './ButtplugConnection';
+export ButtplugView from './ButtplugView';

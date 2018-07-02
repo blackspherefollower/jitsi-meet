@@ -23,7 +23,7 @@ const SidePanels = {
 
         // Initialize contact list view
         if (isButtonEnabled('buttplug')) {
-            ButtplugView.init();
+            ButtplugView.init(eventEmitter);
         }
     }
 };
