@@ -1,17 +1,17 @@
 // @flow
 
 import {
-    ADD_CLIENT
+    ADD_CLIENT,
+    STATE_CHANGED
 } from './actionTypes';
 
 /**
- * Dispatches an action to set whether document editing has started or stopped.
+ * A new buttplug has appeared.
  *
- * @param {Object} client - Whether or not a document is currently being
- * edited.
+ * @param {Object} client - buttplug client
  * @returns {{
- *    type: SET_DOCUMENT_EDITING_STATUS,
- *    editing: boolean
+ *    type: ADD_CLIENT,
+ *    client: Object
  * }}
  */
 export function setAddButtplug(client: object) {
@@ -21,4 +21,15 @@ export function setAddButtplug(client: object) {
     };
 }
 
-
+/**
+ * A new buttplug has appeared!
+ *
+ * @returns {{
+ *    type: STATE_CHANGED,
+ * }}
+ */
+export function buttplugStateChanged() {
+    return {
+        type: STATE_CHANGED
+    };
+}

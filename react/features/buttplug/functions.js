@@ -23,5 +23,7 @@ export function getClient(state: Object) {
 export function getConnected(state: Object) {
     const { client } = state['features/buttplug'];
 
-    return client.hasOwnProperty('Connected') && client.Connected();
+    return client !== null
+        && client.hasOwnProperty('Connected')
+        && client.Connected();
 }

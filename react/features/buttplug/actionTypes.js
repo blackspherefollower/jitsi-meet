@@ -1,9 +1,18 @@
 
 /**
- * The type of the action which signals document editing has stopped or started.
+ * Something happened.
  *
  * {
- *     type: SET_DOCUMENT_EDITING_STATUS
+ *     type: ADD_CLIENT
  * }
  */
 export const ADD_CLIENT = Symbol('ADD_CLIENT');
+
+/**
+ * Something happened.
+ *
+ * {
+ *     type: STATE_CHANGED
+ * }
+ */
+export const STATE_CHANGED = Symbol('STATE_CHANGED');
