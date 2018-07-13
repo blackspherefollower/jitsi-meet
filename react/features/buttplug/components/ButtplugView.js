@@ -28,7 +28,10 @@ import {
 } from 'buttplug/dist/main/src/devtools/web/index.web';
 */
 
-import * as Actions from '../actions';
+import {
+    buttplugSelectedDevicesChanged,
+    buttplugClient
+} from '../actions';
 
 /**
  * BUTTPLUG!!!
@@ -42,7 +45,12 @@ class ButtplugView extends Component {
         /**
          * The state.
          */
-        _state: PropTypes.object
+        _activeDevices: PropTypes.array,
+
+        /**
+         * Updates the redux store with filmstrip hover changes.
+         */
+        dispatch: PropTypes.func
     };
 
     /**
@@ -153,6 +161,7 @@ class ButtplugView extends Component {
                 connected: true,
                 isSimulator: false
             });
+            this.props.dispatch(buttplugClient(client));
         } catch (err) {
             console.error(err);
             this.setState({
@@ -160,6 +169,7 @@ class ButtplugView extends Component {
                 connected: false,
                 isSimulator: false
             });
+            this.props.dispatch(buttplugClient(null));
         }
     }
 
@@ -183,6 +193,7 @@ class ButtplugView extends Component {
                 connected: true,
                 isSimulator: false
             });
+            this.props.dispatch(buttplugClient(client));
         } catch (err) {
             console.error(err);
             this.setState({
@@ -190,6 +201,7 @@ class ButtplugView extends Component {
                 connected: false,
                 isSimulator: false
             });
+            this.props.dispatch(buttplugClient(null));
         }
     }
 
@@ -246,6 +258,9 @@ class ButtplugView extends Component {
             connected: false,
             isSimulator: false
         });
+
+        this.props.dispatch(buttplugSelectedDevicesChanged([]));
+        this.props.dispatch(buttplugClient(null));
     }
 
     /**
@@ -375,13 +390,19 @@ class ButtplugView extends Component {
             return;
         }
         const device = this.state.devices.find(d => d.Index === deviceId);
+        const sDevs = [ ...this.state.selectedDevices ];
 
         if (device !== undefined
             && this.state.selectedDevices.indexOf(device.Index) === -1) {
+            sDevs.push(device.Index);
             this.setState({
-                selectedDevices: [ ...this.state.selectedDevices, device.Index ]
+                selectedDevices: sDevs
             });
+
+            this.props.dispatch(buttplugSelectedDevicesChanged(
+                this.state.devices.filter(d => sDevs.indexOf(d.Index) !== -1)));
         }
+
     }
 
     /**
@@ -404,6 +425,9 @@ class ButtplugView extends Component {
             this.setState({
                 selectedDevices: sDevs
             });
+
+            this.props.dispatch(buttplugSelectedDevicesChanged(
+                this.state.devices.filter(d => sDevs.indexOf(d.Index) !== -1)));
         }
     }
 
@@ -455,35 +479,22 @@ class ButtplugView extends Component {
 }
 
 /**
- * Maps parts of Redux store to component prop types.
+ * Maps (parts of) the Redux state to the associated {@code Filmstrip}'s props.
  *
- * @param {Object} state - Snapshot of Redux store.
+ * @param {Object} state - The Redux state.
+ * @private
  * @returns {{
- *      _isModerator: boolean
+ *     _hovered: boolean,
+ *     _remoteVideosVisible: boolean,
+ *     _toolboxVisible: boolean
  * }}
  */
 function _mapStateToProps(state) {
+    const { activeDevices } = state['features/buttplug'];
+
     return {
-        _state: state
+        _activeDevices: activeDevices
     };
 }
 
-/**
- * This function maps actions to props and binds them so they can be called
- * directly.
- *
- * In this case all actions are mapped to the `actions` prop.
- *
- * @private
- * @param {Object} dispatch - dispatcher
- * @returns {{}}
- */
-function _mapDispatchToProps(dispatch) {
-    return {
-        actions: bindActionCreators(Actions, dispatch)
-    };
-}
-
-export default translate(connect(
-    _mapStateToProps,
-    _mapDispatchToProps)(ButtplugView));
+export default connect(_mapStateToProps)(ButtplugView);

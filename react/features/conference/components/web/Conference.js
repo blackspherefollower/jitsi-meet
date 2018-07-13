@@ -14,6 +14,8 @@ import { CalleeInfoContainer } from '../../../invite';
 import { LargeVideo } from '../../../large-video';
 import { LAYOUTS, getCurrentLayout } from '../../../video-layout';
 
+import { ButtplugController } from '../../buttplug';
+
 import {
     Toolbox,
     fullScreenChanged,
@@ -185,6 +187,7 @@ class Conference extends AbstractConference<Props, *> {
                 <Notice />
                 <Subject />
                 <div id = 'videospace'>
+                    <ButtplugController />
                     <LargeVideo />
                     { hideVideoQualityLabel
                         || <Labels /> }

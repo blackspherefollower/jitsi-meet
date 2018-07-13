@@ -3,13 +3,14 @@
 import { ReducerRegistry } from '../base/redux';
 
 import {
-    ADD_CLIENT,
-    STATE_CHANGED
+    BUTTPLUG_CLIENT,
+    CONTROLLER_HOVERED,
+    SELECTED_DEVICES_CHANGED
 } from './actionTypes';
 
 const DEFAULT_STATE = {
-    client: null,
-    tick: 0
+    activeDevices: [],
+    hovered: false
 };
 
 /**
@@ -19,16 +20,22 @@ ReducerRegistry.register('features/buttplug',
     (state = DEFAULT_STATE, action) => {
         switch (action.type) {
 
-        case ADD_CLIENT:
+        case SELECTED_DEVICES_CHANGED:
             return {
                 ...state,
-                client: action.client
+                activeDevices: action.activeDevices
             };
 
-        case STATE_CHANGED:
+        case CONTROLLER_HOVERED:
             return {
                 ...state,
-                tick: state.tick + 1
+                hovered: action.hovered
+            };
+
+        case BUTTPLUG_CLIENT:
+            return {
+                ...state,
+                buttplugClient: action.buttplugClient
             };
 
         default:

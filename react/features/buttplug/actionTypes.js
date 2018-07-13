@@ -3,16 +3,25 @@
  * Something happened.
  *
  * {
- *     type: ADD_CLIENT
+ *     type: STATE_CHANGED
  * }
  */
-export const ADD_CLIENT = Symbol('ADD_CLIENT');
+export const CONTROLLER_HOVERED = Symbol('CONTROLLER_HOVERED');
 
 /**
  * Something happened.
  *
  * {
- *     type: STATE_CHANGED
+ *     type: SELECTED_DEVICES_CHANGED
  * }
  */
-export const STATE_CHANGED = Symbol('STATE_CHANGED');
+export const SELECTED_DEVICES_CHANGED = Symbol('SELECTED_DEVICES_CHANGED');
+
+/**
+ * Something happened.
+ *
+ * {
+ *     type: SELECTED_DEVICES_CHANGED
+ * }
+ */
+export const BUTTPLUG_CLIENT = Symbol('BUTTPLUG_CLIENT');

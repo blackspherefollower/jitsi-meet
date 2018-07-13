@@ -32,6 +32,11 @@ class ButtplugConnection extends Component {
         defaultClientName: PropTypes.string,
 
         /**
+         * Updates the redux store with selected device changes
+         */
+        dispatch: PropTypes.func,
+
+        /**
          * Input reference for websocket address
          */
         handleAddressChange: PropTypes.func,
