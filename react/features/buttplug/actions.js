@@ -1,9 +1,14 @@
 // @flow
 
 import {
+    BROADCAST_REMOTED_DEVICES,
     BUTTPLUG_CLIENT,
     CONTROLLER_HOVERED,
-    SELECTED_DEVICES_CHANGED
+    SELECTED_DEVICES_CHANGED,
+    RECEIVED_REMOTED_DEVICES,
+    REQUEST_REMOTE_DEVICES,
+    SEND_REMOTE_CONTROL,
+    HANDLE_REMOTE_CONTROL
 } from './actionTypes';
 
 
@@ -48,5 +53,68 @@ export function buttplugClient(client) {
     return {
         type: BUTTPLUG_CLIENT,
         buttplugClient: client
+    };
+}
+
+/**
+ * A new buttplug has appeared!
+ *
+ * @param {*} client - new device list
+ * @returns {{
+ *    type: BUTTPLUG_CLIENT,
+ * }}
+ */
+export function broadcastDevices(devices) {
+    return {
+        type: BROADCAST_REMOTED_DEVICES,
+        remotedDevices: devices
+    };
+}
+
+/**
+ * A new buttplug has appeared!
+ *
+ * @param {*} client - new device list
+ * @returns {{
+ *    type: BUTTPLUG_CLIENT,
+ * }}
+ */
+export function requestRemoteDevices() {
+    return {
+        type: REQUEST_REMOTE_DEVICES
+    };
+}
+
+/**
+ * A new buttplug has appeared!
+ *
+ * @param {*} client - new device list
+ * @returns {{
+ *    type: BUTTPLUG_CLIENT,
+ * }}
+ */
+export function handleRemoteDevices(participant, devices) {
+    return {
+        type: RECEIVED_REMOTED_DEVICES,
+        user: participant._id,
+        devices
+    };
+}
+
+export function sendRemoteDeviceMessage(user, device, msg) {
+    return {
+        type: SEND_REMOTE_CONTROL,
+        user,
+        device,
+        msg
+    };
+}
+
+export function handleRemoteDeviceMessage(user, device, msg) {
+    return {
+        type: HANDLE_REMOTE_CONTROL,
+        user,
+        device,
+        msg
     };
 }

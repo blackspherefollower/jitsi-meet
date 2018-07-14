@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 
 import { dockToolbox } from '../../toolbox';
 
-import { setButtplugControllerHovered } from '../actions';
+import { broadcastDevices, setButtplugControllerHovered, sendRemoteDeviceMessage } from '../actions';
 
 declare var interfaceConfig: Object;
 
@@ -28,6 +28,7 @@ class ButtplugVibeControl extends Component {
      * @static
      */
     static propTypes = {
+
         /**
          * value
          */
@@ -41,7 +42,27 @@ class ButtplugVibeControl extends Component {
         /**
          * value
          */
-        value: PropTypes.double
+        onRemoteAccessChange: PropTypes.func,
+
+        /**
+         * value
+         */
+        remote: PropTypes.bool,
+
+        /**
+         * value
+         */
+        remoted: PropTypes.bool,
+
+        /**
+         * value
+         */
+        user: PropTypes.string,
+
+        /**
+         * value
+         */
+        value: PropTypes.number
     }
 
     /**
@@ -54,6 +75,7 @@ class ButtplugVibeControl extends Component {
     constructor(props) {
         super(props);
         this._onChange = this._onChange.bind(this);
+        this._onRemoteAccessChange = this._onRemoteAccessChange.bind(this);
     }
 
     /**
@@ -64,9 +86,13 @@ class ButtplugVibeControl extends Component {
      */
     render() {
         return (
-            <div key = { this.props.device.Index } >
+            <div>
                 <span>{this.props.device.Name}</span>
+                { !this.props.remote && <input
+                    onChange = { this._onRemoteAccessChange }
+                    type = 'checkbox' /> }
                 <FieldRange
+                    disabled = { this.props.remoted }
                     onChange = { this._onChange }
                     value = { Math.max(Math.min(this.props.value * 100, 100), 0) } />
             </div>
@@ -81,7 +107,18 @@ class ButtplugVibeControl extends Component {
      * @returns {void}
      */
     _onChange(newValue) {
-        this.props.onChange(this.props.device, newValue / 100);
+        this.props.onChange(this.props.device, newValue / 100, this.props.user);
+    }
+
+    /**
+     * Trigger a vibe control chnage
+     *
+     * @param {*} event - the event
+     * @private
+     * @returns {void}
+     */
+    _onRemoteAccessChange(event) {
+        this.props.onRemoteAccessChange(this.props.device, event.target.checked);
     }
 }
 
@@ -120,6 +157,8 @@ class ButtplugController extends Component {
          * Whether or not remote videos are currently being hovered over.
          */
         _hovered: PropTypes.bool,
+
+        _remoteDevices: PropTypes.object,
 
         /**
          * Whether or not the toolbox is visible. The height of the vertical
@@ -160,9 +199,13 @@ class ButtplugController extends Component {
         this._onMouseOut = this._onMouseOut.bind(this);
 
         this._onControlChange = this._onControlChange.bind(this);
+        this._onRemoteAccessChange = this._onRemoteAccessChange.bind(this);
+        this._onRemoteControlChange = this._onRemoteControlChange.bind(this);
 
         this.state = {
-            deviceStates: {}
+            deviceStates: {},
+            remotedDevices: [],
+            remoteDeviceStates: {}
         };
     }
 
@@ -187,7 +230,52 @@ class ButtplugController extends Component {
         return (
             <ButtplugVibeControl
                 device = { device }
+                key = { device.Index }
                 onChange = { this._onControlChange }
+                onRemoteAccessChange = { this._onRemoteAccessChange }
+                remote = { false }
+                remoted = { this.state.remotedDevices.indexOf(device.Index) !== -1 }
+                user = { '' }
+                value = { value } />
+        );
+    }
+
+    /**
+     * Renderes a controller for a device
+     *
+     * @private
+     * @param {Device} device - a ButtplugDevice
+     * @returns {*} the controller
+     */
+    renderRemoteControl(u, d) {
+        let msgs = {};
+
+        d.allowedMsgs.forEach(m => {
+            msgs = {
+                ...msgs,
+                [m[0]]: m[1]
+            };
+        });
+        const device = new Device(d.index, d.name, msgs);
+
+        let value = 0;
+
+        if (device.AllowedMessages.indexOf('VibrateCmd') === -1) {
+            return '';
+        }
+
+        if (this.state.deviceStates[device.Index] !== undefined) {
+            value = this.state.deviceStates[device.Index];
+        }
+
+        return (
+            <ButtplugVibeControl
+                device = { device }
+                key = { device.Index }
+                onChange = { this._onRemoteControlChange }
+                remote = { true }
+                remoted = { false }
+                user = { u }
                 value = { value } />
         );
     }
@@ -215,9 +303,27 @@ class ButtplugController extends Component {
             = _toolboxVisible && interfaceConfig.TOOLBAR_BUTTONS.length;
         const filmstripClassNames = `buttplugcontroller ${reduceHeight ? 'reduce-height' : ''}`;
         let devList = '';
+        const remoteDevList = [];
 
         if (this.props._activeDevices !== undefined) {
             devList = this.props._activeDevices.map(device => this.renderControl(device));
+        }
+
+        if (this.props._remoteDevices !== undefined) {
+            for (const user in this.props._remoteDevices) {
+                if (this.props._remoteDevices.hasOwnProperty(user)) {
+                    const devices = this.props._remoteDevices[user];
+
+                    if (devices.length > 0) {
+                        remoteDevList.push(
+                            <div key = { user }>
+                                <span>{ user }</span>
+                                { devices.map(d =>
+                                    this.renderRemoteControl(user, d)) }
+                            </div>);
+                    }
+                }
+            }
         }
 
         return (
@@ -244,7 +350,9 @@ class ButtplugController extends Component {
                             className = 'remote-video-container'
                             id = 'buttplugRemoteControllersContainer'
                             onMouseOut = { this._onMouseOut }
-                            onMouseOver = { this._onMouseOver } />
+                            onMouseOver = { this._onMouseOver }>
+                            { remoteDevList }
+                        </div>
                     </div>
                 </div>
             </div>
@@ -299,11 +407,60 @@ class ButtplugController extends Component {
      * @returns {void}
      */
     _onControlChange(device, newValue) {
-        this.setState({ deviceStates: {
-            ...this.state.deviceStates,
-            [device.Index]: newValue
-        } });
+        this.setState({
+            deviceStates: {
+                ...this.state.deviceStates,
+                [device.Index]: newValue
+            } });
         this.props._client.SendDeviceMessage(device, CreateSimpleVibrateCmd(device, newValue));
+    }
+
+    /**
+     * Updates the device state
+     *
+     * @private
+     * @param {Device} device - a Buttplug Device
+     * @param {*} newValue - the new value
+     * @returns {void}
+     */
+    _onRemoteControlChange(device, newValue, user) {
+        this.setState({
+            remoteDeviceStates: {
+                ...this.state.remoteDeviceStates,
+                [user]: {
+                    ...this.state.remoteDeviceStates[user],
+                    [device.Index]: newValue
+                }
+            }
+        });
+        this.props.dispatch(sendRemoteDeviceMessage(user, device.Index, CreateSimpleVibrateCmd(device, newValue)));
+    }
+
+    /**
+     * Updates the device state
+     *
+     * @private
+     * @param {Device} device - a Buttplug Device
+     * @param {*} remoted - the new value
+     * @returns {void}
+     */
+    _onRemoteAccessChange(device, remoted) {
+        const rDevs = [ ...this.state.remotedDevices ];
+
+        if ((remoted && rDevs.indexOf(device.Index) !== -1)
+            || (!remoted && rDevs.indexOf(device.Index) === -1)) {
+            return;
+        }
+
+        if (remoted) {
+            rDevs.push(device.Index);
+        } else {
+            rDevs.splice(rDevs.indexOf(device.Index), 1);
+        }
+
+        this.setState({ remotedDevices: rDevs });
+        this.props.dispatch(broadcastDevices(this.props._activeDevices.filter(
+            d => rDevs.indexOf(d.Index) !== -1)));
     }
 }
 
@@ -319,12 +476,18 @@ class ButtplugController extends Component {
  * }}
  */
 function _mapStateToProps(state) {
-    const { activeDevices, hovered, buttplugClient } = state['features/buttplug'];
+    const {
+        activeDevices,
+        hovered,
+        buttplugClient,
+        remoteDevices
+    } = state['features/buttplug'];
 
     return {
         _client: buttplugClient,
         _activeDevices: activeDevices,
         _hovered: hovered,
+        _remoteDevices: remoteDevices,
         _toolboxVisible: state['features/toolbox'].visible
     };
 }
