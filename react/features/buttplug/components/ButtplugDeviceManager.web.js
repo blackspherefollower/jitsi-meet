@@ -1,7 +1,56 @@
+// @flow
 /* eslint-disable new-cap,max-len */
 import Button from '@atlaskit/button';
-import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+
+import React, { PureComponent } from 'react';
+
+export type Props = {
+
+    /**
+     * The connection status
+     */
+    devices: Array<Object>,
+
+    /**
+     * The connection status
+     */
+    isSimulator: boolean,
+
+    /**
+     * The connection status
+     */
+    onDeviceSelected: Function,
+
+    /**
+     * The connection status
+     */
+    onDeviceUnselected: Function,
+
+    /**
+     * The connection status
+     */
+    onShowDevToolsClicked: Function,
+
+    /**
+     * The connection status
+     */
+    onStartScanningClicked: Function,
+
+    /**
+     * The connection status
+     */
+    onStopScanningClicked: Function,
+
+    /**
+     * The connection status
+     */
+    scanning: boolean,
+
+    /**
+     * The connection status
+     */
+    selectedDevices: Array<Object>
+};
 
 /**
  * Implements a React {@link Component} which displays a Buttplug connection
@@ -9,53 +58,8 @@ import React, { Component } from 'react';
  *
  * @extends Component
  */
-class ButtplugDeviceManager extends Component {
-    static propTypes = {
-        /**
-         * The connection status
-         */
-        devices: PropTypes.array,
+class ButtplugDeviceManager<P: Props> extends PureComponent<P> {
 
-        /**
-         * The connection status
-         */
-        isSimulator: PropTypes.bool,
-
-        /**
-         * The connection status
-         */
-        onDeviceSelected: PropTypes.func,
-
-        /**
-         * The connection status
-         */
-        onDeviceUnselected: PropTypes.func,
-
-        /**
-         * The connection status
-         */
-        onShowDevToolsClicked: PropTypes.func,
-
-        /**
-         * The connection status
-         */
-        onStartScanningClicked: PropTypes.func,
-
-        /**
-         * The connection status
-         */
-        onStopScanningClicked: PropTypes.func,
-
-        /**
-         * The connection status
-         */
-        scanning: PropTypes.bool,
-
-        /**
-         * The connection status
-         */
-        selectedDevices: PropTypes.array
-    };
 
     /**
      * Construct a device panel

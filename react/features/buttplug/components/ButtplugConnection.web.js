@@ -1,7 +1,67 @@
-/* eslint-disable new-cap */
+// @flow
+// /* eslint-disable new-cap */
 import Button from '@atlaskit/button';
-import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
+import { Dispatch } from 'redux';
+
+
+export type Props = {
+
+    /**
+     * The client
+     */
+    _client: Object,
+
+    /**
+     * The connection status
+     */
+    connected: boolean,
+
+    /**
+     * Default value for websocket address
+     */
+    defaultAddress: string,
+
+    /**
+     * Default value for client name
+     */
+    defaultClientName: string,
+
+    /**
+     * Updates the redux store with selected device changes
+     */
+    dispatch: Dispatch<any>,
+
+    /**
+     * Input reference for websocket address
+     */
+    handleAddressChange: Function,
+
+    /**
+     * Input reference for client name
+     */
+    handleClientNameChange: Function,
+
+    /**
+     * The connection status
+     */
+    onConnectLocalClicked: Function,
+
+    /**
+     * The connection status
+     */
+    onConnectSimulatorClicked: Function,
+
+    /**
+     * The connection status
+     */
+    onConnectWebsocketClicked: Function,
+
+    /**
+     * The connection status
+     */
+    onDisconnectClicked: Function
+};
 
 /**
  * Implements a React {@link Component} which displays a Buttplug connection
@@ -9,63 +69,7 @@ import React, { Component } from 'react';
  *
  * @extends Component
  */
-class ButtplugConnection extends Component {
-    static propTypes = {
-        /**
-         * The client
-         */
-        _client: PropTypes.object,
-
-        /**
-         * The connection status
-         */
-        connected: PropTypes.bool,
-
-        /**
-         * Default value for websocket address
-         */
-        defaultAddress: PropTypes.string,
-
-        /**
-         * Default value for client name
-         */
-        defaultClientName: PropTypes.string,
-
-        /**
-         * Updates the redux store with selected device changes
-         */
-        dispatch: PropTypes.func,
-
-        /**
-         * Input reference for websocket address
-         */
-        handleAddressChange: PropTypes.func,
-
-        /**
-         * Input reference for client name
-         */
-        handleClientNameChange: PropTypes.func,
-
-        /**
-         * The connection status
-         */
-        onConnectLocalClicked: PropTypes.func,
-
-        /**
-         * The connection status
-         */
-        onConnectSimulatorClicked: PropTypes.func,
-
-        /**
-         * The connection status
-         */
-        onConnectWebsocketClicked: PropTypes.func,
-
-        /**
-         * The connection status
-         */
-        onDisconnectClicked: PropTypes.func
-    };
+class ButtplugConnection<P: Props> extends PureComponent<P> {
 
     /**
      * Constructs a buttplug conenction manager.

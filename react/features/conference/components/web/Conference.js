@@ -14,7 +14,7 @@ import { CalleeInfoContainer } from '../../../invite';
 import { LargeVideo } from '../../../large-video';
 import { LAYOUTS, getCurrentLayout } from '../../../video-layout';
 
-import { ButtplugController } from '../../buttplug';
+import { ButtplugController } from '../../../buttplug';
 
 import {
     Toolbox,

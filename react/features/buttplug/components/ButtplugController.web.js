@@ -2,9 +2,8 @@
 /* @flow */
 
 import _ from 'lodash';
-import FieldRange from '@atlaskit/field-range';
-import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import FieldRange from '@atlaskit/range';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 
 import { dockToolbox } from '../../toolbox';
@@ -15,55 +14,51 @@ declare var interfaceConfig: Object;
 
 import { CreateSimpleVibrateCmd, Device } from 'buttplug';
 
+export type VibeControlProps = {
+
+    /**
+     * value
+     */
+    device: Object,
+
+    /**
+     * value
+     */
+    onChange: Function,
+
+    /**
+     * value
+     */
+    onRemoteAccessChange: Function,
+
+    /**
+     * value
+     */
+    remote: boolean,
+
+    /**
+     * value
+     */
+    remoted: boolean,
+
+    /**
+     * value
+     */
+    user: string,
+
+    /**
+     * value
+     */
+    value: number
+}
+
 /**
  * Implements a React {@link Component} which displays a Buttplug connection
  * flow
  *
  * @extends Component
  */
-class ButtplugVibeControl extends Component {
-    /**
-     * {@code Filmstrip} component's property types.
-     *
-     * @static
-     */
-    static propTypes = {
-
-        /**
-         * value
-         */
-        device: PropTypes.object,
-
-        /**
-         * value
-         */
-        onChange: PropTypes.func,
-
-        /**
-         * value
-         */
-        onRemoteAccessChange: PropTypes.func,
-
-        /**
-         * value
-         */
-        remote: PropTypes.bool,
-
-        /**
-         * value
-         */
-        remoted: PropTypes.bool,
-
-        /**
-         * value
-         */
-        user: PropTypes.string,
-
-        /**
-         * value
-         */
-        value: PropTypes.number
-    }
+class ButtplugVibeControl<P: VibeControlProps> extends PureComponent<P> {
 
     /**
      * Construct a vibe control
@@ -122,13 +117,44 @@ class ButtplugVibeControl extends Component {
     }
 }
 
+export type ControllerProps = {
+
+    /**
+     * List of active buttplug devices.
+     */
+    _activeDevices: Array<Object>,
+
+    /**
+     * List of active buttplug devices.
+     */
+    _client: Object,
+
+    /**
+     * Whether or not remote videos are currently being hovered over.
+     */
+    _hovered: boolean,
+
+    _remoteDevices: Object,
+
+    /**
+     * Whether or not the toolbox is visible. The height of the vertical
+     * filmstrip needs to adjust to accommodate the horizontal toolbox.
+     */
+    _toolboxVisible: boolean,
+
+    /**
+     * Updates the redux store with filmstrip hover changes.
+     */
+    dispatch: PropTypes.func
+};
+
 /**
  * Implements a React {@link Component} which displays a Buttplug connection
  * flow
  *
  * @extends Component
  */
-class ButtplugController extends Component {
+class ButtplugController<P: ControllerProps> extends PureComponent<P> {
     _isHovered: boolean;
 
     _notifyOfHoveredStateUpdate: Function;
@@ -136,41 +162,6 @@ class ButtplugController extends Component {
     _onMouseOut: Function;
 
     _onMouseOver: Function;
-
-    /**
-     * {@code Filmstrip} component's property types.
-     *
-     * @static
-     */
-    static propTypes = {
-        /**
-         * List of active buttplug devices.
-         */
-        _activeDevices: PropTypes.array,
-
-        /**
-         * List of active buttplug devices.
-         */
-        _client: PropTypes.object,
-
-        /**
-         * Whether or not remote videos are currently being hovered over.
-         */
-        _hovered: PropTypes.bool,
-
-        _remoteDevices: PropTypes.object,
-
-        /**
-         * Whether or not the toolbox is visible. The height of the vertical
-         * filmstrip needs to adjust to accommodate the horizontal toolbox.
-         */
-        _toolboxVisible: PropTypes.bool,
-
-        /**
-         * Updates the redux store with filmstrip hover changes.
-         */
-        dispatch: PropTypes.func
-    };
 
     /**
      * Construct a device panel
