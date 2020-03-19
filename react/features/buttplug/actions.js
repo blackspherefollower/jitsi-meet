@@ -8,9 +8,9 @@ import {
     RECEIVED_REMOTED_DEVICES,
     REQUEST_REMOTE_DEVICES,
     SEND_REMOTE_CONTROL,
-    HANDLE_REMOTE_CONTROL
+    HANDLE_REMOTE_CONTROL,
+    TOGGLE_BUTTPLUG
 } from './actionTypes';
-
 
 /**
  * A new buttplug has appeared!
@@ -116,5 +116,18 @@ export function handleRemoteDeviceMessage(user, device, msg) {
         user,
         device,
         msg
+    };
+}
+
+/**
+ * Toggles display of the chat side panel.
+ *
+ * @returns {{
+ *     type: TOGGLE_CHAT
+ * }}
+ */
+export function toggleButtplug() {
+    return {
+        type: TOGGLE_BUTTPLUG
     };
 }

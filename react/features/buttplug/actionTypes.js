@@ -41,3 +41,12 @@ export const RECEIVED_REMOTED_DEVICES = Symbol('RECEIVED_REMOTED_DEVICES');
 export const REQUEST_REMOTE_DEVICES = Symbol('REQUEST_REMOTE_DEVICES');
 export const SEND_REMOTE_CONTROL = Symbol('SEND_REMOTE_CONTROL');
 export const HANDLE_REMOTE_CONTROL = Symbol('HANDLE_REMOTE_CONTROL');
+
+/**
+ * The type of the action which signals to toggle the display of the buttplug panel.
+ *
+ * {
+ *     type: TOGGLE_BUTTPLUG
+ * }
+ */
+export const TOGGLE_BUTTPLUG = 'TOGGLE_BUTTPLUG';

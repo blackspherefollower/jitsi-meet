@@ -32,6 +32,7 @@ import { connect, equals } from '../../../base/redux';
 import { OverflowMenuItem } from '../../../base/toolbox';
 import { getLocalVideoTrack, toggleScreensharing } from '../../../base/tracks';
 import { VideoBlurButton } from '../../../blur';
+import { toggleButtplug } from '../../../buttplug';
 import { ChatCounter, toggleChat } from '../../../chat';
 import { SharedDocumentButton } from '../../../etherpad';
 import { openFeedbackDialog } from '../../../feedback';
@@ -89,6 +90,11 @@ import {
  * The type of the React {@code Component} props of {@link Toolbox}.
  */
 type Props = {
+
+    /**
+     * Whether or not the buttplug feature is currently displayed.
+     */
+    _buttplugOpen: boolean,
 
     /**
      * Whether or not the chat feature is currently displayed.
@@ -243,6 +249,7 @@ class Toolbox extends Component<Props, State> {
         this._onToolbarOpenSpeakerStats = this._onToolbarOpenSpeakerStats.bind(this);
         this._onToolbarOpenVideoQuality = this._onToolbarOpenVideoQuality.bind(this);
         this._onToolbarToggleChat = this._onToolbarToggleChat.bind(this);
+        this._onToolbarToggleButtplug = this._onToolbarToggleButtplug.bind(this);
         this._onToolbarToggleFullScreen = this._onToolbarToggleFullScreen.bind(this);
         this._onToolbarToggleProfile = this._onToolbarToggleProfile.bind(this);
         this._onToolbarToggleRaiseHand = this._onToolbarToggleRaiseHand.bind(this);
@@ -409,6 +416,16 @@ class Toolbox extends Component<Props, State> {
     }
 
     /**
+     * Dispatches an action to toggle the display of buttplug.
+     *
+     * @private
+     * @returns {void}
+     */
+    _doToggleButtplug() {
+        this.props.dispatch(toggleButtplug());
+    }
+
+    /**
      * Dispatches an action to toggle the display of chat.
      *
      * @private
@@ -558,6 +575,25 @@ class Toolbox extends Component<Props, State> {
      */
     _onSetOverflowVisible(visible) {
         this.props.dispatch(setOverflowMenuVisible(visible));
+    }
+
+    _onShortcutToggleButtplug: () => void;
+
+    /**
+     * Creates an analytics keyboard shortcut event and dispatches an action for
+     * toggling the display of chat.
+     *
+     * @private
+     * @returns {void}
+     */
+    _onShortcutToggleButtplug() {
+        sendAnalytics(createShortcutEvent(
+            'toggle.chat',
+            {
+                enable: !this.props._buttplugOpen
+            }));
+
+        this._doToggleButtplug();
     }
 
     _onShortcutToggleChat: () => void;
@@ -740,6 +776,25 @@ class Toolbox extends Component<Props, State> {
         sendAnalytics(createToolbarEvent('video.quality'));
 
         this._doOpenVideoQuality();
+    }
+
+    _onToolbarToggleButtplug: () => void;
+
+    /**
+     * Creates an analytics toolbar event and dispatches an action for toggling
+     * the display of buttplug.
+     *
+     * @private
+     * @returns {void}
+     */
+    _onToolbarToggleButtplug() {
+        sendAnalytics(createToolbarEvent(
+            'toggle.buttplug',
+            {
+                enable: !this.props._buttplugOpen
+            }));
+
+        this._doToggleButtplug();
     }
 
     _onToolbarToggleChat: () => void;
@@ -1048,6 +1103,7 @@ class Toolbox extends Component<Props, State> {
      */
     _renderMovedButtons(movedButtons) {
         const {
+            _buttplugOpen,
             _chatOpen,
             _raisedHand,
             t
@@ -1083,6 +1139,20 @@ class Toolbox extends Component<Props, State> {
                         text = {
                             t(`toolbar.${
                                 _chatOpen ? 'closeChat' : 'openChat'}`
+                            )
+                        } />
+                );
+            case 'buttplug':
+                return (
+                    <OverflowMenuItem
+                        accessibilityLabel =
+                            { t('toolbar.accessibilityLabel.buttplug') }
+                        icon = { IconChat }
+                        key = 'buttplug'
+                        onClick = { this._onToolbarToggleButtplug }
+                        text = {
+                            t(`toolbar.${
+                                _buttplugOpen ? 'closeButtplug' : 'openButtplug'}`
                             )
                         } />
                 );
@@ -1123,6 +1193,7 @@ class Toolbox extends Component<Props, State> {
      */
     _renderToolboxContent() {
         const {
+            _buttplugOpen,
             _chatOpen,
             _hideInviteButton,
             _overflowMenuVisible,
@@ -1228,6 +1299,15 @@ class Toolbox extends Component<Props, State> {
                                 tooltip = { t('toolbar.chat') } />
                             <ChatCounter />
                         </div> }
+                    { buttonsLeft.indexOf('chat') !== -1
+                        && <div className = 'toolbar-button-with-badge'>
+                            <ToolbarButton
+                                accessibilityLabel = { t('toolbar.accessibilityLabel.buttplug') }
+                                icon = { IconChat }
+                                onClick = { this._onToolbarToggleButtplug }
+                                toggled = { _buttplugOpen }
+                                tooltip = { t('toolbar.buttplug') } />
+                        </div> }
                     {
                         buttonsLeft.indexOf('closedcaptions') !== -1
                             && <ClosedCaptionButton />
@@ -1300,7 +1380,6 @@ class Toolbox extends Component<Props, State> {
  */
 function _mapStateToProps(state) {
     const { conference } = state['features/base/conference'];
-    let { desktopSharingEnabled } = state['features/base/conference'];
     const {
         callStatsID,
         iAmRecorder
@@ -1316,6 +1395,7 @@ function _mapStateToProps(state) {
     const addPeopleEnabled = isAddPeopleEnabled(state);
     const dialOutEnabled = isDialOutEnabled(state);
 
+    let { desktopSharingEnabled } = state['features/base/conference'];
     let desktopSharingDisabledTooltipKey;
 
     if (state['features/base/config'].enableFeaturesBasedOnToken) {
@@ -1340,6 +1420,7 @@ function _mapStateToProps(state) {
     const buttons = new Set(interfaceConfig.TOOLBAR_BUTTONS);
 
     return {
+        _buttplugOpen: state['features/buttplug'].isOpen,
         _chatOpen: state['features/chat'].isOpen,
         _conference: conference,
         _desktopSharingEnabled: desktopSharingEnabled,

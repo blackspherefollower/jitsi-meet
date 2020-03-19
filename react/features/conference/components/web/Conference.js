@@ -14,7 +14,7 @@ import { CalleeInfoContainer } from '../../../invite';
 import { LargeVideo } from '../../../large-video';
 import { LAYOUTS, getCurrentLayout } from '../../../video-layout';
 
-import { ButtplugController } from '../../../buttplug';
+import { Buttplug, ButtplugController } from '../../../buttplug';
 
 import {
     Toolbox,
@@ -196,6 +196,7 @@ class Conference extends AbstractConference<Props, *> {
 
                 { filmstripOnly || <Toolbox /> }
                 { filmstripOnly || <Chat /> }
+                { filmstripOnly || <Buttplug /> }
 
                 { this.renderNotificationsContainer() }
 

@@ -1,10 +1,10 @@
-/* eslint-disable no-unused-vars,new-cap */
-import PropTypes from 'prop-types';
-import React, { Component, create } from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
+// @flow
 
-import { translate } from '../../base/i18n';
+/* eslint-disable no-unused-vars,new-cap */
+import React, { PureComponent } from 'react';
+import { connect } from 'react-redux';
+
+import { translate } from '../../../base/i18n';
 
 import ButtplugConnection from './ButtplugConnection';
 import ButtplugDeviceManager from './ButtplugDeviceManager';
@@ -31,7 +31,20 @@ import {
 import {
     buttplugSelectedDevicesChanged,
     buttplugClient
-} from '../actions';
+} from '../../actions';
+
+export type Props = {
+
+    /**
+     * The state.
+     */
+    _activeDevices: Array,
+
+    /**
+     * Updates the redux store with filmstrip hover changes.
+     */
+    dispatch: Function
+};
 
 /**
  * BUTTPLUG!!!
@@ -40,18 +53,7 @@ import {
  *
  * @extends Component
  */
-class ButtplugView extends Component {
-    static propTypes = {
-        /**
-         * The state.
-         */
-        _activeDevices: PropTypes.array,
-
-        /**
-         * Updates the redux store with filmstrip hover changes.
-         */
-        dispatch: PropTypes.func
-    };
+class ButtplugView<P: Props> extends PureComponent<P> {
 
     /**
      * Creates and appends buttplugs to the side panel.

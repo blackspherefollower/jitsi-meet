@@ -10,7 +10,7 @@ import {
     RECEIVED_REMOTED_DEVICES,
     REQUEST_REMOTE_DEVICES,
     SEND_REMOTE_CONTROL,
-    HANDLE_REMOTE_CONTROL
+    HANDLE_REMOTE_CONTROL, TOGGLE_BUTTPLUG
 } from './actionTypes';
 
 import { FromJSON, Error as ErrorMsg } from 'buttplug';
@@ -20,7 +20,8 @@ const DEFAULT_STATE = {
     remoteDevices: {},
     remotedDevices: [],
     hovered: false,
-    buttplugClient: null
+    buttplugClient: null,
+    isOpen: false
 };
 
 declare var APP: Object;
@@ -117,6 +118,13 @@ ReducerRegistry.register('features/buttplug',
                 state.buttplugClient.SendDeviceMessage(dev, msgs[0]);
             }
             break;
+
+
+        case TOGGLE_BUTTPLUG:
+            return {
+                ...state,
+                isOpen: !state.isOpen
+            };
         }
 
         return state;

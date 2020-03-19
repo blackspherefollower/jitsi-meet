@@ -6,9 +6,9 @@ import FieldRange from '@atlaskit/range';
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 
-import { dockToolbox } from '../../toolbox';
+import { dockToolbox } from '../../../toolbox';
 
-import { broadcastDevices, setButtplugControllerHovered, sendRemoteDeviceMessage } from '../actions';
+import { broadcastDevices, setButtplugControllerHovered, sendRemoteDeviceMessage } from '../../actions';
 
 declare var interfaceConfig: Object;
 
