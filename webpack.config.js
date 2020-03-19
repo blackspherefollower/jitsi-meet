@@ -2,6 +2,7 @@
 
 const process = require('process');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+var webpack = require('webpack');
 
 /**
  * The URL of the Jitsi Meet deployment to be proxy to in the context of
@@ -155,7 +156,11 @@ const config = {
             && new BundleAnalyzerPlugin({
                 analyzerMode: 'disabled',
                 generateStatsFile: true
-            })
+            }),
+        new webpack.ProvidePlugin({
+            $: 'jquery',
+            jQuery: 'jquery'
+        })
     ].filter(Boolean),
     resolve: {
         alias: {
