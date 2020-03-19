@@ -24,8 +24,8 @@ const minimize
 function getPerformanceHints(size) {
     return {
         hints: minimize ? 'error' : false,
-        maxAssetSize: size,
-        maxEntrypointSize: size
+        maxAssetSize: size * 20,
+        maxEntrypointSize: size * 20
     };
 }
 
