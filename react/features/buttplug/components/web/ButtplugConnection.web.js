@@ -149,14 +149,6 @@ class ButtplugConnection<P: Props> extends PureComponent<P> {
                             shouldFitContainer = { true }>
                             Connect Local
                         </Button>
-                        <Button
-                            appearance = 'primary'
-                            onClick = {
-                                this.props.onConnectSimulatorClicked
-                            }
-                            shouldFitContainer = { true }>
-                            Connect Simulator
-                        </Button>
                     </form>
                 }
                 {this.props.connected

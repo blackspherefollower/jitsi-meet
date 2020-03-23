@@ -18,7 +18,9 @@ import {
     Log,
     StopDeviceCmd,
     Error as ErrorMsg,
-    ButtplugEmbeddedServerConnector } from 'buttplug';
+    ButtplugEmbeddedServerConnector,
+    ButtplugLogger,
+    ButtplugLogLevel } from 'buttplug';
 
 /*
 import { CreateDevToolsClient } from 'buttplug/dist/main/src/devtools';
@@ -66,8 +68,6 @@ class ButtplugView<P: Props> extends PureComponent<P> {
 
         this._onConnectLocalClicked
             = this._onConnectLocalClicked.bind(this);
-        this._onConnectSimulatorClicked
-            = this._onConnectSimulatorClicked.bind(this);
         this._onConnectWebsocketClicked
             = this._onConnectWebsocketClicked.bind(this);
         this._onDisconnectClicked
@@ -92,11 +92,10 @@ class ButtplugView<P: Props> extends PureComponent<P> {
 
         this.state = {
             address: location.protocol === 'https:'
-                ? 'wss://localhost:12345/buttplug'
+                ? 'wss://localhost:12346/buttplug'
                 : 'ws://localhost:12345/buttplug',
             clientName: 'Jitsi Buttplug Client',
             devices: [],
-            isSimulator: false,
             lastErrorMessage: null,
             logMessages: [],
             scanning: false,
@@ -152,6 +151,7 @@ class ButtplugView<P: Props> extends PureComponent<P> {
     async _onConnectWebsocketClicked() {
         const client = new ButtplugClient(this.state.clientName);
 
+        ButtplugLogger.Logger.MaximumConsoleLogLevel = ButtplugLogLevel.Trace;
         this.initializeClient(client);
 
         try {
@@ -205,36 +205,6 @@ class ButtplugView<P: Props> extends PureComponent<P> {
             });
             this.props.dispatch(buttplugClient(null));
         }
-    }
-
-    /**
-     * On click handler.
-     *
-     * @private
-     * @returns {void}
-     */
-    _onConnectSimulatorClicked() {
-        /*
-        try {
-            const client = await CreateDevToolsClient();
-
-            this.initializeClient(client);
-
-            this.buttplugClient = client;
-            this.setState({
-               scanning: false,
-               connected: true,
-               isSimulator: true
-           });
-       } catch (err) {
-           console.error(err);
-           this.setState({
-               scanning: false,
-               connected: false,
-               isSimulator: false
-           });
-       }
-       */
     }
 
     /**
@@ -333,6 +303,7 @@ class ButtplugView<P: Props> extends PureComponent<P> {
      * @returns {void}
      */
     addLogMessage(logMessage) {
+        console.log(logMessage);
         this.setState({
             logMessages: [
                 ...this.state.logMessages,
@@ -449,9 +420,6 @@ class ButtplugView<P: Props> extends PureComponent<P> {
                     handleClientNameChange = { this.handleClientNameChange }
                     onConnectLocalClicked = {
                         this._onConnectLocalClicked
-                    }
-                    onConnectSimulatorClicked = {
-                        this._onConnectSimulatorClicked
                     }
                     onConnectWebsocketClicked = {
                         this._onConnectWebsocketClicked

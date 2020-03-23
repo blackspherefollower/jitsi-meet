@@ -145,8 +145,9 @@ const config = {
         __filename: true
     },
     optimization: {
-        concatenateModules: minimize,
-        minimize
+        minimize: false
+        // concatenateModules: minimize,
+        // minimize
     },
     output: {
         filename: `[name]${minimize ? '.min' : ''}.js`,
