@@ -20,12 +20,42 @@
 }
 
 .buttplugcontroller {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    padding: 10px 5px;
+    /*
+     * Firefox sets flex items to min-height: auto and min-width: auto,
+     * preventing flex children from shrinking like they do on other browsers.
+     * Setting min-height and min-width 0 is a workaround for the issue so
+     * Firefox behaves like other browsers.
+     * https://bugzilla.mozilla.org/show_bug.cgi?id=1043520
+     */
+    @mixin minHWAutoFix() {
+        min-height: 0;
+        min-width: 0;
+    }
+
     @extend %align-left;
+    align-items: flex-start;
+    bottom: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column-reverse;
+    height: 100%;
+    width: 100%;
+    padding: ($desktopAppDragBarHeight - 5px) 5px 10px;
+    /**
+     * fixed positioning is necessary for remote menus and tooltips to pop
+     * out of the scrolling filmstrip. AtlasKit dialogs and tooltips use
+     * a library called popper which will position its elements fixed if
+     * any parent is also fixed.
+     */
+    position: fixed;
+    top: 0;
+    transition: height .3s ease-in;
+    right: 0;
     z-index: $filmstripVideosZ;
+
+    &.reduce-height {
+        height: calc(100% - #{$newToolbarSizeWithPadding});
+    }
 
     &__toolbar {
         @include flex();
@@ -65,8 +95,9 @@
         padding: 0;
         /* The buttplugcontroller should not be covered by the left toolbar. */
         bottom: 0;
-        width:auto;
+        width: 250px;
         overflow: visible !important;
+        flex-direction: column-reverse;
 
         &#remoteVideos {
             border: $thumbnailsBorder solid transparent;
