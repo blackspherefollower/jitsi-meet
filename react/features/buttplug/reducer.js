@@ -14,6 +14,7 @@ import {
 } from './actionTypes';
 
 import { FromJSON, Error as ErrorMsg } from 'buttplug';
+import {buttplugDeviceToObject} from "./functions";
 
 const DEFAULT_STATE = {
     activeDevices: [],
@@ -55,6 +56,13 @@ ReducerRegistry.register('features/buttplug',
             if (action.remotedDevices === null) {
                 action.remotedDevices = state.remotedDevices;
             }
+            let rDevs = [];
+
+            for (const d of action.remotedDevices) {
+                rDevs.push(buttplugDeviceToObject(d));
+            }
+            action.remotedDevices = rDevs;
+            console.log(action);
 
             APP.conference.sendEndpointMessage('', {
                 type: 'buttplug',

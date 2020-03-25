@@ -61,9 +61,9 @@ export type VibeControlProps = {
 class ButtplugVibeControl<P: VibeControlProps> extends PureComponent<P> {
 
     /**
-     * Construct a vibe control
+     * Construct a vibe control.
      *
-     * @param {*} props - the props
+     * @param {*} props - The props.
      * @private
      * @returns {void}
      */
@@ -74,7 +74,7 @@ class ButtplugVibeControl<P: VibeControlProps> extends PureComponent<P> {
     }
 
     /**
-     * Render a vibe control
+     * Render a vibe control.
      *
      * @private
      * @returns {void}
@@ -95,9 +95,9 @@ class ButtplugVibeControl<P: VibeControlProps> extends PureComponent<P> {
     }
 
     /**
-     * Trigger a vibe control chnage
+     * Trigger a vibe control chnage.
      *
-     * @param {*} newValue - the new value
+     * @param {*} newValue - The new value.
      * @private
      * @returns {void}
      */
@@ -106,9 +106,9 @@ class ButtplugVibeControl<P: VibeControlProps> extends PureComponent<P> {
     }
 
     /**
-     * Trigger a vibe control chnage
+     * Trigger a vibe control chnage.
      *
-     * @param {*} event - the event
+     * @param {*} event - The event.
      * @private
      * @returns {void}
      */
@@ -164,9 +164,9 @@ class ButtplugController<P: ControllerProps> extends PureComponent<P> {
     _onMouseOver: Function;
 
     /**
-     * Construct a device panel
+     * Construct a device panel.
      *
-     * @param {*} props - the props
+     * @param {*} props - The props.
      * @private
      * @returns {void}
      */
@@ -201,11 +201,11 @@ class ButtplugController<P: ControllerProps> extends PureComponent<P> {
     }
 
     /**
-     * Renderes a controller for a device
+     * Renderes a controller for a device.
      *
      * @private
-     * @param {Device} device - a ButtplugDevice
-     * @returns {*} the controller
+     * @param {Device} device - A ButtplugDevice.
+     * @returns {*} The controller.
      */
     renderControl(device) {
         let value = 0;
@@ -232,43 +232,41 @@ class ButtplugController<P: ControllerProps> extends PureComponent<P> {
     }
 
     /**
-     * Renderes a controller for a device
+     * Renderes a controller for a device.
      *
      * @private
-     * @param {Device} device - a ButtplugDevice
-     * @returns {*} the controller
+     * @param {Device} device - A ButtplugDevice.
+     * @returns {*} The controller.
      */
     renderRemoteControl(u, d) {
-        let msgs = {};
+        console.log(u, d);
+        try {
+            const device = new Device(d.index, d.name, d.allowedMsgs);
 
-        d.allowedMsgs.forEach(m => {
-            msgs = {
-                ...msgs,
-                [m[0]]: m[1]
-            };
-        });
-        const device = new Device(d.index, d.name, msgs);
+            let value = 0;
 
-        let value = 0;
+            if (device.AllowedMessages.indexOf('VibrateCmd') === -1) {
+                return '';
+            }
 
-        if (device.AllowedMessages.indexOf('VibrateCmd') === -1) {
-            return '';
+            if (this.state.deviceStates[device.Index] !== undefined) {
+                value = this.state.deviceStates[device.Index];
+            }
+
+            return (
+                <ButtplugVibeControl
+                    device = { device }
+                    key = { device.Index }
+                    onChange = { this._onRemoteControlChange }
+                    remote = { true }
+                    remoted = { false }
+                    user = { u }
+                    value = { value } />
+            );
+        } catch (e) {
+            console.error(e);
+            return;
         }
-
-        if (this.state.deviceStates[device.Index] !== undefined) {
-            value = this.state.deviceStates[device.Index];
-        }
-
-        return (
-            <ButtplugVibeControl
-                device = { device }
-                key = { device.Index }
-                onChange = { this._onRemoteControlChange }
-                remote = { true }
-                remoted = { false }
-                user = { u }
-                value = { value } />
-        );
     }
 
     /**
@@ -390,11 +388,11 @@ class ButtplugController<P: ControllerProps> extends PureComponent<P> {
 
 
     /**
-     * Updates the device state
+     * Updates the device state.
      *
      * @private
-     * @param {Device} device - a Buttplug Device
-     * @param {*} newValue - the new value
+     * @param {Device} device - A Buttplug Device.
+     * @param {*} newValue - The new value.
      * @returns {void}
      */
     _onControlChange(device, newValue) {
@@ -407,11 +405,11 @@ class ButtplugController<P: ControllerProps> extends PureComponent<P> {
     }
 
     /**
-     * Updates the device state
+     * Updates the device state.
      *
      * @private
-     * @param {Device} device - a Buttplug Device
-     * @param {*} newValue - the new value
+     * @param {Device} device - A Buttplug Device.
+     * @param {*} newValue - The new value.
      * @returns {void}
      */
     _onRemoteControlChange(device, newValue, user) {
@@ -428,11 +426,11 @@ class ButtplugController<P: ControllerProps> extends PureComponent<P> {
     }
 
     /**
-     * Updates the device state
+     * Updates the device state.
      *
      * @private
-     * @param {Device} device - a Buttplug Device
-     * @param {*} remoted - the new value
+     * @param {Device} device - A Buttplug Device.
+     * @param {*} remoted - The new value.
      * @returns {void}
      */
     _onRemoteAccessChange(device, remoted) {

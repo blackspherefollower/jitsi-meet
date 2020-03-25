@@ -26,7 +26,7 @@ MiddlewareRegistry.register(store => next => action => {
     switch (action.type) {
     case CONFERENCE_JOINED:
         _addButtblugMsgListener(action.conference, store);
-        // store.dispatch(requestRemoteDevices());
+        store.dispatch(requestRemoteDevices());
         break;
     }
 

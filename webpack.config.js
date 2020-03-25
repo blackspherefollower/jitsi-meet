@@ -36,7 +36,7 @@ const config = {
         https: true,
         inline: true,
         hot: true,
-        host: '0.0.0.0',
+        host: 'jitsi',
         proxy: {
             '/': {
                 bypass: devServerProxyBypass,
