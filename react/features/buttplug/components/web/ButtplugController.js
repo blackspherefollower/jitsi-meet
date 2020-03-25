@@ -11,6 +11,7 @@ import { dockToolbox } from '../../../toolbox';
 import { broadcastDevices, setButtplugControllerHovered, sendRemoteDeviceMessage } from '../../actions';
 
 declare var interfaceConfig: Object;
+declare var APP: Object;
 
 import { CreateSimpleVibrateCmd, Device } from 'buttplug';
 
@@ -306,7 +307,7 @@ class ButtplugController<P: ControllerProps> extends PureComponent<P> {
                     if (devices.length > 0) {
                         remoteDevList.push(
                             <div key = { user }>
-                                <span>{ user }</span>
+                                <span>{ APP.conference.getParticipantDisplayName(user) }</span>
                                 { devices.map(d =>
                                     this.renderRemoteControl(user, d)) }
                             </div>);
