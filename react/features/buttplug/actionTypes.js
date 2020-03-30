@@ -25,6 +25,9 @@ export const SELECTED_DEVICES_CHANGED = Symbol('SELECTED_DEVICES_CHANGED');
  * }
  */
 export const BUTTPLUG_CLIENT = Symbol('BUTTPLUG_CLIENT');
+export const BUTTPLUG_DISCONNECTED = Symbol('BUTTPLUG_DISCONNECTED');
+export const BUTTPLUG_SCANNING_START = Symbol('BUTTPLUG_SCANNING_START');
+export const BUTTPLUG_SCANNING_STOP = Symbol('BUTTPLUG_SCANNING_STOP');
 
 /**
  * The type of the action which updates which is the most recent message that
@@ -40,6 +43,7 @@ export const BROADCAST_REMOTED_DEVICES = Symbol('BROADCAST_REMOTED_DEVICES');
 export const RECEIVED_REMOTED_DEVICES = Symbol('RECEIVED_REMOTED_DEVICES');
 export const REQUEST_REMOTE_DEVICES = Symbol('REQUEST_REMOTE_DEVICES');
 export const SEND_REMOTE_CONTROL = Symbol('SEND_REMOTE_CONTROL');
+export const SEND_LOCAL_CONTROL = Symbol('SEND_LOCAL_CONTROL');
 export const HANDLE_REMOTE_CONTROL = Symbol('HANDLE_REMOTE_CONTROL');
 
 /**

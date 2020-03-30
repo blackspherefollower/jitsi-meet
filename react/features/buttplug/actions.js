@@ -9,8 +9,13 @@ import {
     REQUEST_REMOTE_DEVICES,
     SEND_REMOTE_CONTROL,
     HANDLE_REMOTE_CONTROL,
-    TOGGLE_BUTTPLUG
+    TOGGLE_BUTTPLUG,
+    BUTTPLUG_DISCONNECTED,
+    BUTTPLUG_SCANNING_START,
+    BUTTPLUG_SCANNING_STOP, SEND_LOCAL_CONTROL
 } from './actionTypes';
+import {buttplugDeviceToObject} from "./functions";
+import {Device} from "buttplug";
 
 /**
  * A new buttplug has appeared!
@@ -49,10 +54,49 @@ export function buttplugSelectedDevicesChanged(devices) {
  *    type: BUTTPLUG_CLIENT,
  * }}
  */
-export function buttplugClient(client) {
+export function setButtplugClient(client) {
     return {
         type: BUTTPLUG_CLIENT,
         buttplugClient: client
+    };
+}
+
+/**
+ * Buttplug ran away!
+ *
+ * @returns {{
+ *    type: BUTTPLUG_DISCONNECTED,
+ * }}
+ */
+export function buttplugDisconnected() {
+    return {
+        type: BUTTPLUG_DISCONNECTED
+    };
+}
+
+/**
+ * Buttplug started scanning
+ *
+ * @returns {{
+ *    type: BUTTPLUG_SCANNING_START,
+ * }}
+ */
+export function buttplugScanningStart() {
+    return {
+        type: BUTTPLUG_SCANNING_START
+    };
+}
+
+/**
+ * Buttplug stopped scanning
+ *
+ * @returns {{
+ *    type: BUTTPLUG_SCANNING_STOP,
+ * }}
+ */
+export function buttplugScanningStop() {
+    return {
+        type: BUTTPLUG_SCANNING_STOP
     };
 }
 
@@ -64,10 +108,16 @@ export function buttplugClient(client) {
  *    type: BUTTPLUG_CLIENT,
  * }}
  */
-export function broadcastDevices(devices) {
+export function broadcastDevices(devices, user) {
+    const userDevices = devices
+        .filter(d => d.Remoted === user || d.Remoted === '')
+        .map(d => buttplugDeviceToObject(d.Device));
+
     return {
         type: BROADCAST_REMOTED_DEVICES,
-        remotedDevices: devices
+        user,
+        devices,
+        userDevices
     };
 }
 
@@ -101,21 +151,31 @@ export function handleRemoteDevices(participant, devices) {
     };
 }
 
-export function sendRemoteDeviceMessage(user, device, msg) {
+export function sendRemoteDeviceMessage(user, device, state) {
     return {
         type: SEND_REMOTE_CONTROL,
         user,
         device,
-        msg
+        state
     };
 }
 
-export function handleRemoteDeviceMessage(user, device, msg) {
+export function sendLocalDeviceMessage(device, state) {
+    return {
+        type: SEND_LOCAL_CONTROL,
+        device,
+        state
+    };
+}
+
+export function handleRemoteDeviceMessage(user, device, state) {
+    device.Device = new Device(device.Device.index, device.Device.name, device.Device.allowedMsgs);
+
     return {
         type: HANDLE_REMOTE_CONTROL,
         user,
         device,
-        msg
+        state
     };
 }
 

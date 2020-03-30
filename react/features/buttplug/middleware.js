@@ -26,7 +26,6 @@ MiddlewareRegistry.register(store => next => action => {
     switch (action.type) {
     case CONFERENCE_JOINED:
         _addButtblugMsgListener(action.conference, store);
-        store.dispatch(requestRemoteDevices());
         break;
     }
 
@@ -55,21 +54,27 @@ function _addButtblugMsgListener(conference, { dispatch }) {
                 && event.value !== undefined
                 && event.value.event !== undefined) {
 
-                console.debug(event);
-
                 switch (event.value.event) {
                 case 'remote-devices':
                     dispatch(handleRemoteDevices(participant,
                         event.value.devices));
                     break;
                 case 'request-devices':
-                    dispatch(broadcastDevices(null));
+                    dispatch(broadcastDevices(participant._id));
                     break;
                 case 'remote-control-device':
                     dispatch(handleRemoteDeviceMessage(participant._id,
-                        event.value.device, event.value.buttplugMessage));
+                        event.value.device, event.value.state));
                     break;
                 }
             }
         });
+
+    conference.on(
+        JitsiConferenceEvents.PARTICIPANT_CONN_STATUS_CHANGED,
+        id => dispatch(requestRemoteDevices(id)));
+
+    conference.on(
+        JitsiConferenceEvents.CONFERENCE_JOINED,
+        () => dispatch(requestRemoteDevices(null)));
 }

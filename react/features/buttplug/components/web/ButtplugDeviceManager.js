@@ -3,6 +3,7 @@
 import Button from '@atlaskit/button';
 
 import React, { PureComponent } from 'react';
+import { Checkbox } from '@atlaskit/checkbox';
 
 export type Props = {
 
@@ -14,22 +15,12 @@ export type Props = {
     /**
      * The connection status
      */
-    isSimulator: boolean,
-
-    /**
-     * The connection status
-     */
     onDeviceSelected: Function,
 
     /**
      * The connection status
      */
     onDeviceUnselected: Function,
-
-    /**
-     * The connection status
-     */
-    onShowDevToolsClicked: Function,
 
     /**
      * The connection status
@@ -83,7 +74,7 @@ class ButtplugDeviceManager<P: Props> extends PureComponent<P> {
      * @returns {void}
      */
     _onDeviceSelectionChanged(event) {
-        const devId = event.target.id.match(/\d+/);
+        const devId = event.target.value;
 
         if (devId !== null && devId.length > 0) {
             if (event.target.checked) {
@@ -103,28 +94,17 @@ class ButtplugDeviceManager<P: Props> extends PureComponent<P> {
     render() {
         const devList = this.props.devices.map(device => {
             const checked
-                = this.props.selectedDevices.indexOf(device.Index) !== -1;
+                = this.props.selectedDevices.findIndex(d => d.Device.Index === device.Index) !== -1;
 
             return (
-                <div key = { device.Index.toString() }>
-                    <input
-                        checked = { checked }
-                        className = 'buttplug-device-checkbox'
-                        id = { `buttplug-device-${device.Index.toString()}` }
-                        onChange = { this._onDeviceSelectionChanged }
-                        // eslint-disable-next-line react-native/no-inline-styles
-                        style = {{
-                            display: 'inline-block',
-                            margin: '0, 5px',
-                            width: 'auto'
-                        }}
-                        type = 'checkbox' />
-                    <label
-                        className = 'buttplug-device-checkbox-label'
-                        htmlFor = {
-                            `buttplug-device-${device.Index.toString()}`
-                        } >{ device.Name }</label>
-                </div>
+                <Checkbox
+                    className = 'buttplug-device-checkbox'
+                    defaultChecked = { checked }
+                    id = { `buttplug-device-${device.Index}` }
+                    key = { device.Index }
+                    label = { device.Name }
+                    onChange = { this._onDeviceSelectionChanged }
+                    value = { device.Index } />
             );
         });
 
@@ -144,12 +124,6 @@ class ButtplugDeviceManager<P: Props> extends PureComponent<P> {
                     onClick = { this.props.onStopScanningClicked }
                     shouldFitContainer = { true }>
                     Stop Scanning</Button>}
-                {this.props.isSimulator
-                && <Button
-                    appearance = 'primary'
-                    onClick = { this.props.onShowDevToolsClicked }
-                    shouldFitContainer = { true }>
-                    Show DevTools</Button>}
             </div>
         );
     }

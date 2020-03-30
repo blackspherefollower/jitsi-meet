@@ -2,128 +2,59 @@
 /* @flow */
 
 import _ from 'lodash';
-import FieldRange from '@atlaskit/range';
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 
 import { dockToolbox } from '../../../toolbox';
 
-import { broadcastDevices, setButtplugControllerHovered, sendRemoteDeviceMessage } from '../../actions';
+import {
+    broadcastDevices,
+    setButtplugControllerHovered,
+    sendRemoteDeviceMessage,
+    sendLocalDeviceMessage
+} from '../../actions';
 
 declare var interfaceConfig: Object;
 declare var APP: Object;
 
-import { CreateSimpleVibrateCmd, Device } from 'buttplug';
+import { ButtplugClient, CreateSimpleVibrateCmd, Device } from 'buttplug';
+import { ButtplugVibrationControl } from './ButtplugVibrationControl';
+import {buttplugDeviceToObject} from "../../functions";
 
-export type VibeControlProps = {
-
-    /**
-     * value
-     */
-    device: Object,
+export type ButtplugDeviceWarpper = {
 
     /**
-     * value
+     * The buttplug device
      */
-    onChange: Function,
+    Device: Device,
 
     /**
-     * value
+     * The buttplug device state
      */
-    onRemoteAccessChange: Function,
+    State: Object,
 
     /**
-     * value
+     * The buttplug client (for convenience)
      */
-    remote: boolean,
+    Client: ButtplugClient | null,
 
     /**
-     * value
+     * The device owner (null if local)
      */
-    remoted: boolean,
+    Remote: string | null,
 
     /**
-     * value
+     * The delegated controlling user (null if not remoted, empty for free-for-all)
      */
-    user: string,
-
-    /**
-     * value
-     */
-    value: number
+    Remoted: string | null,
 }
 
-/**
- * Implements a React {@link Component} which displays a Buttplug connection
- * flow
- *
- * @extends Component
- */
-class ButtplugVibeControl<P: VibeControlProps> extends PureComponent<P> {
-
-    /**
-     * Construct a vibe control.
-     *
-     * @param {*} props - The props.
-     * @private
-     * @returns {void}
-     */
-    constructor(props) {
-        super(props);
-        this._onChange = this._onChange.bind(this);
-        this._onRemoteAccessChange = this._onRemoteAccessChange.bind(this);
-    }
-
-    /**
-     * Render a vibe control.
-     *
-     * @private
-     * @returns {void}
-     */
-    render() {
-        return (
-            <div>
-                <span>{this.props.device.Name}</span>
-                { !this.props.remote && <input
-                    onChange = { this._onRemoteAccessChange }
-                    type = 'checkbox' /> }
-                <FieldRange
-                    disabled = { this.props.remoted }
-                    onChange = { this._onChange }
-                    value = { Math.max(Math.min(this.props.value * 100, 100), 0) } />
-            </div>
-        );
-    }
-
-    /**
-     * Trigger a vibe control chnage.
-     *
-     * @param {*} newValue - The new value.
-     * @private
-     * @returns {void}
-     */
-    _onChange(newValue) {
-        this.props.onChange(this.props.device, newValue / 100, this.props.user);
-    }
-
-    /**
-     * Trigger a vibe control chnage.
-     *
-     * @param {*} event - The event.
-     * @private
-     * @returns {void}
-     */
-    _onRemoteAccessChange(event) {
-        this.props.onRemoteAccessChange(this.props.device, event.target.checked);
-    }
-}
-
-export type ControllerProps = {
+export type Props = {
 
     /**
      * List of active buttplug devices.
      */
-    _activeDevices: Array<Object>,
+    _activeDevices: Array<ButtplugDeviceWarpper>,
 
     /**
      * List of active buttplug devices.
@@ -134,8 +65,6 @@ export type ControllerProps = {
      * Whether or not remote videos are currently being hovered over.
      */
     _hovered: boolean,
-
-    _remoteDevices: Object,
 
     /**
      * Whether or not the toolbox is visible. The height of the vertical
@@ -155,14 +84,8 @@ export type ControllerProps = {
  *
  * @extends Component
  */
-class ButtplugController<P: ControllerProps> extends PureComponent<P> {
+class ButtplugController<P: Props> extends PureComponent<P> {
     _isHovered: boolean;
-
-    _notifyOfHoveredStateUpdate: Function;
-
-    _onMouseOut: Function;
-
-    _onMouseOver: Function;
 
     /**
      * Construct a device panel.
@@ -194,41 +117,32 @@ class ButtplugController<P: ControllerProps> extends PureComponent<P> {
         this._onRemoteAccessChange = this._onRemoteAccessChange.bind(this);
         this._onRemoteControlChange = this._onRemoteControlChange.bind(this);
 
-        this.state = {
-            deviceStates: {},
-            remotedDevices: [],
-            remoteDeviceStates: {}
-        };
+        this.state = {};
     }
 
     /**
      * Renderes a controller for a device.
      *
      * @private
-     * @param {Device} device - A ButtplugDevice.
+     * @param {ButtplugDeviceWarpper} device - A ButtplugDevice.
      * @returns {*} The controller.
      */
     renderControl(device) {
-        let value = 0;
+        const dev = device.Device;
 
-        if (device.AllowedMessages.indexOf('VibrateCmd') === -1) {
+        if (dev.AllowedMessages.indexOf('VibrateCmd') === -1) {
             return '';
         }
 
-        if (this.state.deviceStates[device.Index] !== undefined) {
-            value = this.state.deviceStates[device.Index];
-        }
-
         return (
-            <ButtplugVibeControl
+            <ButtplugVibrationControl
                 device = { device }
-                key = { device.Index }
+                key = { dev.Index }
                 onChange = { this._onControlChange }
                 onRemoteAccessChange = { this._onRemoteAccessChange }
                 remote = { false }
-                remoted = { this.state.remotedDevices.indexOf(device.Index) !== -1 }
-                user = { '' }
-                value = { value } />
+                remoted = { device.Remoted }
+                user = { '' } />
         );
     }
 
@@ -236,38 +150,26 @@ class ButtplugController<P: ControllerProps> extends PureComponent<P> {
      * Renderes a controller for a device.
      *
      * @private
-     * @param {Device} device - A ButtplugDevice.
+     * @param {*} user - The owner of the device.
+     * @param {ButtplugDeviceWarpper} device - A ButtplugDevice.
      * @returns {*} The controller.
      */
-    renderRemoteControl(u, d) {
-        console.log(u, d);
-        try {
-            const device = new Device(d.index, d.name, d.allowedMsgs);
+    renderRemoteControl(user, device) {
+        const dev = device.Device;
 
-            let value = 0;
-
-            if (device.AllowedMessages.indexOf('VibrateCmd') === -1) {
-                return '';
-            }
-
-            if (this.state.deviceStates[device.Index] !== undefined) {
-                value = this.state.deviceStates[device.Index];
-            }
-
-            return (
-                <ButtplugVibeControl
-                    device = { device }
-                    key = { device.Index }
-                    onChange = { this._onRemoteControlChange }
-                    remote = { true }
-                    remoted = { false }
-                    user = { u }
-                    value = { value } />
-            );
-        } catch (e) {
-            console.error(e);
-            return;
+        if (dev.AllowedMessages.indexOf('VibrateCmd') === -1) {
+            return '';
         }
+
+        return (
+            <ButtplugVibrationControl
+                device = { device }
+                key = { dev.Index }
+                onChange = { this._onRemoteControlChange }
+                remote = { true }
+                remoted = { null }
+                user = { device.Remote } />
+        );
     }
 
     /**
@@ -296,22 +198,19 @@ class ButtplugController<P: ControllerProps> extends PureComponent<P> {
         const remoteDevList = [];
 
         if (this.props._activeDevices !== undefined) {
-            devList = this.props._activeDevices.map(device => this.renderControl(device));
+            devList = this.props._activeDevices.filter(device => device.Remote === null).map(device => this.renderControl(device));
         }
 
-        if (this.props._remoteDevices !== undefined) {
-            for (const user in this.props._remoteDevices) {
-                if (this.props._remoteDevices.hasOwnProperty(user)) {
-                    const devices = this.props._remoteDevices[user];
+        if (APP.conference.getConnectionState()) {
+            for (const user of APP.conference.listMembersIds()) {
+                const devs = this.props._activeDevices.filter(device => device.Remote === user);
 
-                    if (devices.length > 0) {
-                        remoteDevList.push(
-                            <div key = { user }>
-                                <span>{ APP.conference.getParticipantDisplayName(user) }</span>
-                                { devices.map(d =>
-                                    this.renderRemoteControl(user, d)) }
-                            </div>);
-                    }
+                if (devs.length > 0) {
+                    remoteDevList.push(
+                        <div key = { user } >
+                            <span>{APP.conference.getParticipantDisplayName(user)}</span>
+                            {devs.map(d => this.renderRemoteControl(user, d))}
+                        </div>);
                 }
             }
         }
@@ -397,12 +296,7 @@ class ButtplugController<P: ControllerProps> extends PureComponent<P> {
      * @returns {void}
      */
     _onControlChange(device, newValue) {
-        this.setState({
-            deviceStates: {
-                ...this.state.deviceStates,
-                [device.Index]: newValue
-            } });
-        this.props._client.SendDeviceMessage(device, CreateSimpleVibrateCmd(device, newValue));
+        this.props.dispatch(sendLocalDeviceMessage(device, newValue));
     }
 
     /**
@@ -411,46 +305,38 @@ class ButtplugController<P: ControllerProps> extends PureComponent<P> {
      * @private
      * @param {Device} device - A Buttplug Device.
      * @param {*} newValue - The new value.
+     * @param {*} user - The owner of the device.
      * @returns {void}
      */
     _onRemoteControlChange(device, newValue, user) {
-        this.setState({
-            remoteDeviceStates: {
-                ...this.state.remoteDeviceStates,
-                [user]: {
-                    ...this.state.remoteDeviceStates[user],
-                    [device.Index]: newValue
-                }
-            }
-        });
-        this.props.dispatch(sendRemoteDeviceMessage(user, device.Index, CreateSimpleVibrateCmd(device, newValue)));
+        const dev = { ...device };
+
+        dev.Device = buttplugDeviceToObject(dev.Device);
+        this.props.dispatch(sendRemoteDeviceMessage(user, dev, newValue));
     }
 
     /**
      * Updates the device state.
      *
      * @private
-     * @param {Device} device - A Buttplug Device.
-     * @param {*} remoted - The new value.
+     * @param {ButtplugDeviceWarpper} device - A Buttplug Device.
+     * @param {string|null} remoted - The new value.
      * @returns {void}
      */
     _onRemoteAccessChange(device, remoted) {
-        const rDevs = [ ...this.state.remotedDevices ];
+        const devs = [ ...this.props._activeDevices ];
+        const idx = devs.findIndex(d => d.Device.Index === device.Device.Index && d.Remote === null);
 
-        if ((remoted && rDevs.indexOf(device.Index) !== -1)
-            || (!remoted && rDevs.indexOf(device.Index) === -1)) {
+        if (idx === -1) {
             return;
         }
 
-        if (remoted) {
-            rDevs.push(device.Index);
-        } else {
-            rDevs.splice(rDevs.indexOf(device.Index), 1);
-        }
+        const dev = { ...devs[idx] };
 
-        this.setState({ remotedDevices: rDevs });
-        this.props.dispatch(broadcastDevices(this.props._activeDevices.filter(
-            d => rDevs.indexOf(d.Index) !== -1)));
+        dev.Remoted = remoted;
+        devs.splice(idx, 1, dev);
+
+        this.props.dispatch(broadcastDevices(devs, remoted));
     }
 }
 
@@ -469,15 +355,13 @@ function _mapStateToProps(state) {
     const {
         activeDevices,
         hovered,
-        buttplugClient,
-        remoteDevices
+        buttplugClient
     } = state['features/buttplug'];
 
     return {
         _client: buttplugClient,
         _activeDevices: activeDevices,
         _hovered: hovered,
-        _remoteDevices: remoteDevices,
         _toolboxVisible: state['features/toolbox'].visible
     };
 }

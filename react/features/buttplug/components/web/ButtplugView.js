@@ -31,16 +31,28 @@ import {
 */
 
 import {
+    buttplugDisconnected, buttplugScanningStart, buttplugScanningStop,
     buttplugSelectedDevicesChanged,
-    buttplugClient
+    setButtplugClient
 } from '../../actions';
+import type { ButtplugDeviceWarpper } from './ButtplugController';
 
 export type Props = {
 
     /**
      * The state.
      */
-    _activeDevices: Array,
+    _activeDevices: Array<ButtplugDeviceWarpper>,
+
+    /**
+     * The state.
+     */
+    _buttplugClient: ButtplugClient,
+
+    /**
+     * The state.
+     */
+    _isScanning: boolean,
 
     /**
      * Updates the redux store with filmstrip hover changes.
@@ -79,8 +91,6 @@ class ButtplugView<P: Props> extends PureComponent<P> {
             = this._onStartScanningClicked.bind(this);
         this._onStopScanningClicked
             = this._onStopScanningClicked.bind(this);
-        this._onShowDevToolsClicked
-            = this._onShowDevToolsClicked.bind(this);
 
         this._onDeviceSelected = this._onDeviceSelected.bind(this);
         this._onDeviceUnselected = this._onDeviceUnselected.bind(this);
@@ -88,18 +98,20 @@ class ButtplugView<P: Props> extends PureComponent<P> {
         this.handleAddressChange = this.handleAddressChange.bind(this);
         this.handleClientNameChange = this.handleClientNameChange.bind(this);
 
-        this.buttplugClient = null;
+        let devices = [];
+
+        if (this.props._buttplugClient?.Devices !== undefined ) {
+            devices = [ ...this.props._buttplugClient.Devices ];
+        }
 
         this.state = {
             address: location.protocol === 'https:'
                 ? 'wss://localhost:12346/buttplug'
                 : 'ws://localhost:12345/buttplug',
             clientName: 'Jitsi Buttplug Client',
-            devices: [],
+            devices,
             lastErrorMessage: null,
-            logMessages: [],
-            scanning: false,
-            selectedDevices: []
+            logMessages: []
         };
     }
 
@@ -156,22 +168,10 @@ class ButtplugView<P: Props> extends PureComponent<P> {
 
         try {
             await client.ConnectWebsocket(this.state.address);
-
-            this.buttplugClient = client;
-            this.setState({
-                scanning: false,
-                connected: true,
-                isSimulator: false
-            });
-            this.props.dispatch(buttplugClient(client));
+            this.props.dispatch(setButtplugClient(client));
         } catch (err) {
             console.error(err);
-            this.setState({
-                scanning: false,
-                connected: false,
-                isSimulator: false
-            });
-            this.props.dispatch(buttplugClient(null));
+            this.props.dispatch(setButtplugClient(null));
         }
     }
 
@@ -188,22 +188,10 @@ class ButtplugView<P: Props> extends PureComponent<P> {
 
         try {
             await client.ConnectLocal();
-
-            this.buttplugClient = client;
-            this.setState({
-                scanning: false,
-                connected: true,
-                isSimulator: false
-            });
-            this.props.dispatch(buttplugClient(client));
+            this.props.dispatch(setButtplugClient(client));
         } catch (err) {
             console.error(err);
-            this.setState({
-                scanning: false,
-                connected: false,
-                isSimulator: false
-            });
-            this.props.dispatch(buttplugClient(null));
+            this.props.dispatch(setButtplugClient(null));
         }
     }
 
@@ -213,26 +201,14 @@ class ButtplugView<P: Props> extends PureComponent<P> {
      * @private
      * @returns {void}
      */
-    _onDisconnectClicked() {
-        if (this.buttplugClient !== null) {
-            try {
-                this.buttplugClient.Disconnect();
-            } catch (err) {
-                console.error(err);
-            }
-            this.buttplugClient = null;
+    async _onDisconnectClicked() {
+        try {
+            await this.props._buttplugClient?.Disconnect();
+        } catch (err) {
+            console.error(err);
         }
 
-        // RemoveDeviceManagerPanel();
-
-        this.setState({
-            scanning: false,
-            connected: false,
-            isSimulator: false
-        });
-
-        this.props.dispatch(buttplugSelectedDevicesChanged([]));
-        this.props.dispatch(buttplugClient(null));
+        this.props.dispatch(buttplugDisconnected());
     }
 
     /**
@@ -242,20 +218,15 @@ class ButtplugView<P: Props> extends PureComponent<P> {
      * @returns {void}
      */
     async _onStartScanningClicked() {
-        if (!this.state.connected) {
+        if (!this.props._buttplugClient?.Connected) {
             return;
         }
 
         try {
-            await this.buttplugClient.StartScanning();
-            this.setState({
-                scanning: true
-            });
+            await this.props._buttplugClient.StartScanning();
+            this.props.dispatch(buttplugScanningStart());
         } catch (err) {
             console.error(err);
-            this.setState({
-                scanning: false
-            });
         }
     }
 
@@ -266,33 +237,16 @@ class ButtplugView<P: Props> extends PureComponent<P> {
      * @returns {void}
      */
     async _onStopScanningClicked() {
-        if (!this.state.connected) {
+        if (!this.props._buttplugClient?.Connected) {
             return;
         }
 
         try {
-            await this.buttplugClient.StopScanning();
+            await this.props._buttplugClient.StopScanning();
+            this.props.dispatch(buttplugScanningStop());
         } catch (err) {
             console.error(err);
         }
-
-        this.setState({
-            scanning: false
-        });
-    }
-
-    /**
-     * On click handler.
-     *
-     * @private
-     * @returns {void}
-     */
-    _onShowDevToolsClicked() {
-        if (!this.state.isSimulator) {
-            return;
-        }
-
-        // CreateDeviceManagerPanel(this.buttplugClient.Connector.Server);
     }
 
     /**
@@ -336,18 +290,11 @@ class ButtplugView<P: Props> extends PureComponent<P> {
      */
     removeDevice(device) {
         const devs = [ ...this.state.devices ];
-        const sDevs = [ ...this.state.selectedDevices ];
 
         if (devs.indexOf(device) !== -1) {
             devs.splice(devs.indexOf(device), 1);
         }
-        if (sDevs.indexOf(device.Index) !== -1) {
-            sDevs.splice(sDevs.indexOf(device.Index), 1);
-        }
-        this.setState({
-            devices: devs,
-            selectedDevices: sDevs
-        });
+        this._onDeviceUnselected(device.Index);
     }
 
     /**
@@ -359,21 +306,39 @@ class ButtplugView<P: Props> extends PureComponent<P> {
      */
     _onDeviceSelected(deviceId) {
         // If we're not connected, ignore.
-        if (!this.state.connected) {
+        if (!this.props._buttplugClient?.Connected) {
             return;
         }
-        const device = this.state.devices.find(d => d.Index === deviceId);
-        const sDevs = [ ...this.state.selectedDevices ];
+        const device = this.props._buttplugClient.Devices.find(d => d.Index === deviceId);
+        const sDevs = [ ...this.props._activeDevices ];
 
-        if (device !== undefined
-            && this.state.selectedDevices.indexOf(device.Index) === -1) {
-            sDevs.push(device.Index);
-            this.setState({
-                selectedDevices: sDevs
-            });
+        if (device !== undefined && sDevs.findIndex(d => d.Index === deviceId) === -1) {
+            const wrap: ButtplugDeviceWarpper = {
+                Device: device,
+                Client: this.props._buttplugClient,
+                Remoted: null,
+                Remote: null,
+                State: {}
+            };
+            let feats = 1;
 
-            this.props.dispatch(buttplugSelectedDevicesChanged(
-                this.state.devices.filter(d => sDevs.indexOf(d.Index) !== -1)));
+            for (const msg of device.AllowedMessages) {
+                switch (msg) {
+                case 'VibrateCmd':
+                case 'LinearCmd':
+                case 'RotateCmd':
+                    feats = device.MessageAttributes(msg)?.FeatureCount || 1;
+
+                    wrap.State[msg] = [];
+                    for (let i = 0; i < feats; i++) {
+                        wrap.State[msg].push(0);
+                    }
+                    break;
+                }
+            }
+
+            sDevs.push(wrap);
+            this.props.dispatch(buttplugSelectedDevicesChanged(sDevs));
         }
 
     }
@@ -387,20 +352,16 @@ class ButtplugView<P: Props> extends PureComponent<P> {
      */
     _onDeviceUnselected(deviceId) {
         // If we're not connected, ignore.
-        if (!this.state.connected) {
+        if (!this.props._buttplugClient?.Connected) {
             return;
         }
-        const device = this.state.devices.find(d => d.Index === deviceId);
-        const sDevs = [ ...this.state.selectedDevices ];
 
-        if (device !== undefined && sDevs.indexOf(device.Index) !== -1) {
-            sDevs.splice(sDevs.indexOf(deviceId), 1);
-            this.setState({
-                selectedDevices: sDevs
-            });
+        const sDevs = [ ...this.props._activeDevices ];
+        const idx = sDevs.findIndex(d => d.Index === deviceId);
 
-            this.props.dispatch(buttplugSelectedDevicesChanged(
-                this.state.devices.filter(d => sDevs.indexOf(d.Index) !== -1)));
+        if (idx !== -1) {
+            sDevs.splice(idx, 1);
+            this.props.dispatch(buttplugSelectedDevicesChanged(sDevs));
         }
     }
 
@@ -413,7 +374,7 @@ class ButtplugView<P: Props> extends PureComponent<P> {
         return (
             <div>
                 <ButtplugConnection
-                    connected = { this.state.connected }
+                    connected = { this.props._buttplugClient?.Connected || false }
                     defaultAddress = { this.state.address }
                     defaultClientName = { this.state.clientName }
                     handleAddressChange = { this.handleAddressChange }
@@ -427,21 +388,19 @@ class ButtplugView<P: Props> extends PureComponent<P> {
                     onDisconnectClicked = {
                         this._onDisconnectClicked
                     } />
-                {this.state.connected
+                {(this.props._buttplugClient?.Connected || false)
                     && <ButtplugDeviceManager
                         devices = { this.state.devices }
-                        isSimulator = { this.state.isSimulator }
                         onDeviceSelected = { this._onDeviceSelected }
                         onDeviceUnselected = { this._onDeviceUnselected }
-                        onShowDevToolsClicked = { this._onShowDevToolsClicked }
                         onStartScanningClicked = {
                             this._onStartScanningClicked
                         }
                         onStopScanningClicked = {
                             this._onStopScanningClicked
                         }
-                        scanning = { this.state.scanning }
-                        selectedDevices = { this.state.selectedDevices } />
+                        scanning = { this.props._isScanning }
+                        selectedDevices = { this.props._activeDevices } />
                 }
             </div>
         );
@@ -460,10 +419,12 @@ class ButtplugView<P: Props> extends PureComponent<P> {
  * }}
  */
 function _mapStateToProps(state) {
-    const { activeDevices } = state['features/buttplug'];
+    const { activeDevices, buttplugClient, isScanning } = state['features/buttplug'];
 
     return {
-        _activeDevices: activeDevices
+        _activeDevices: activeDevices,
+        _buttplugClient: buttplugClient,
+        _isScanning: isScanning
     };
 }
 
